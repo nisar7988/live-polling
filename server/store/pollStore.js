@@ -7,6 +7,7 @@ let poll = {
   endTime: 0,
   active: false,
   nextPageToken: null,
+  liveChatId: null,
 };
 
 let pollInterval = null;

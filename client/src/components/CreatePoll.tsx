@@ -4,9 +4,10 @@ interface CreatePollProps {
   question: string;
   setQuestion: (val: string) => void;
   startPoll: (options: string[]) => void;
+  error: string | null;
 }
 
-export const CreatePoll: React.FC<CreatePollProps> = ({ question, setQuestion, startPoll }) => {
+export const CreatePoll: React.FC<CreatePollProps> = ({ question, setQuestion, startPoll, error }) => {
   const [options, setOptions] = useState<string[]>(["A", "B", "C"]);
 
   const handleOptionChange = (index: number, value: string) => {
@@ -41,6 +42,19 @@ export const CreatePoll: React.FC<CreatePollProps> = ({ question, setQuestion, s
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "400px" }}>
+      {error && (
+        <div style={{ 
+          padding: "10px", 
+          backgroundColor: "#ffebee", 
+          color: "#c62828", 
+          borderRadius: "4px",
+          border: "1px solid #ef9a9a",
+          marginBottom: "10px",
+          fontSize: "14px"
+        }}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
       <input
         type="text"
         placeholder="Enter poll question"

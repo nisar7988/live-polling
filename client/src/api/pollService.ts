@@ -7,7 +7,8 @@ export const startPollAPI = async (question: string, options: string[]) => {
     body: JSON.stringify({ question, options, duration: 30000 }),
   });
   if (!response.ok) {
-    throw new Error("Failed to start poll");
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to start poll");
   }
   return response.json();
 };

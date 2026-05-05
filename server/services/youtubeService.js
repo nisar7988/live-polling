@@ -26,18 +26,60 @@ function mockPollYouTubeChat(poll) {
   }
 }
 
+async function getActiveLiveChatId() {
+  if (!process.env.YOUTUBE_ACCESS_TOKEN) {
+    console.warn("No YOUTUBE_ACCESS_TOKEN found, cannot fetch live chat ID dynamically.");
+    return null;
+  }
+
+  try {
+    const params = {
+      part: "snippet,contentDetails",
+      mine: true,
+    };
+
+    const response = await axios.get(
+      "https://www.googleapis.com/youtube/v3/liveBroadcasts",
+      {
+        params,
+        headers: {
+          Authorization: `Bearer ${process.env.YOUTUBE_ACCESS_TOKEN}`,
+        },
+      },
+    );
+
+    // Filter for active broadcasts or just take the first one if it exists
+    const broadcasts = response.data.items || [];
+    const activeBroadcast = broadcasts.find(b => b.snippet.liveChatId) || broadcasts[0];
+    const liveChatId = activeBroadcast?.snippet?.liveChatId;
+    
+    if (liveChatId) {
+      console.log("Successfully fetched active liveChatId:", liveChatId);
+    } else {
+      console.warn("No active live broadcast found for this user.");
+    }
+    
+    return liveChatId || null;
+  } catch (error) {
+    console.error("Error fetching active live chat ID:", error.response?.data || error.message);
+    return null;
+  }
+}
+
 async function pollYouTubeChat() {
   const poll = getPoll();
   if (!poll.active) return;
 
-  // Use mock data if no live chat ID is configured
-  if (!process.env.LIVE_CHAT_ID) {
+  const liveChatId = poll.liveChatId || process.env.LIVE_CHAT_ID;
+
+  // Use mock data if no live chat ID is configured or found
+  if (!liveChatId) {
     return mockPollYouTubeChat(poll);
   }
 
   try {
     const params = {
-      liveChatId: process.env.LIVE_CHAT_ID,
+      liveChatId: liveChatId,
       part: "snippet,authorDetails",
       key: process.env.YOUTUBE_API_KEY,
     };
@@ -48,8 +90,8 @@ async function pollYouTubeChat() {
 
     // If using OAuth, add Authorization header
     const headers = {};
-    if (process.env.ACCESS_TOKEN) {
-      headers.Authorization = `Bearer ${process.env.ACCESS_TOKEN}`;
+    if (process.env.YOUTUBE_ACCESS_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.YOUTUBE_ACCESS_TOKEN}`;
     }
 
     const response = await axios.get(
@@ -59,15 +101,16 @@ async function pollYouTubeChat() {
         headers,
       },
     );
+    console.log(response.data,"response.data")
 
     const messages = response.data.items || [];
     poll.nextPageToken = response.data.nextPageToken;
 
     messages.forEach((message) => {
-      const text = message.snippet.displayMessage.toUpperCase();
+      const text = message.snippet.displayMessage.trim().toUpperCase();
       const userId = message.authorDetails.channelId;
 
-      if (["A", "B", "C"].includes(text) && !poll.voters[userId]) {
+      if (poll.options.includes(text) && !poll.voters[userId]) {
         poll.votes[text]++;
         poll.voters[userId] = text;
       }
@@ -79,4 +122,5 @@ async function pollYouTubeChat() {
 
 module.exports = {
   pollYouTubeChat,
+  getActiveLiveChatId,
 };

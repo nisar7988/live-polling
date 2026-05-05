@@ -12,6 +12,7 @@ function App() {
     timeLeft,
     results,
     totalVotes,
+    error,
     startPoll,
   } = usePoll();
 
@@ -24,6 +25,7 @@ function App() {
           question={question}
           setQuestion={setQuestion}
           startPoll={startPoll}
+          error={error}
         />
       )}
 

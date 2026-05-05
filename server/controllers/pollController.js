@@ -1,7 +1,7 @@
 const { getPoll, setPoll, getPollInterval, setPollInterval } = require("../store/pollStore");
-const { pollYouTubeChat } = require("../services/youtubeService");
+const { pollYouTubeChat, getActiveLiveChatId } = require("../services/youtubeService");
 
-const startPoll = (req, res) => {
+const startPoll = async (req, res) => {
   const { question, options = ["A", "B", "C"], duration = 30000 } = req.body;
   const poll = getPoll();
 
@@ -9,15 +9,31 @@ const startPoll = (req, res) => {
     return res.status(400).json({ error: "Poll already active" });
   }
 
+  // Fetch active live chat ID dynamically
+  const liveChatId = await getActiveLiveChatId();
+
+  if (!liveChatId) {
+    return res.status(400).json({ 
+      error: "No active YouTube live broadcast found. Please make sure you are live before starting the poll." 
+    });
+  }
+
+  const uppercasedOptions = options.map(o => o.toUpperCase());
+  const initialVotes = {};
+  uppercasedOptions.forEach(option => {
+    initialVotes[option] = 0;
+  });
+
   setPoll({
     question,
-    options,
-    votes: { A: 0, B: 0, C: 0 },
+    options: uppercasedOptions,
+    votes: initialVotes,
     voters: {},
     startTime: Date.now(),
     endTime: Date.now() + duration,
     active: true,
     nextPageToken: null,
+    liveChatId,
   });
 
   // Start polling every 8-10 seconds
@@ -25,9 +41,17 @@ const startPoll = (req, res) => {
   setPollInterval(interval);
 
   // Stop poll after duration
-  setTimeout(() => {
+  setTimeout(async () => {
     clearInterval(getPollInterval());
-    getPoll().active = false;
+    const poll = getPoll();
+    poll.active = false;
+    
+    // Refresh chat ID for the next poll
+    const nextLiveChatId = await getActiveLiveChatId();
+    if (nextLiveChatId) {
+      poll.liveChatId = nextLiveChatId;
+      console.log("Live chat ID refreshed after poll:", nextLiveChatId);
+    }
   }, duration);
 
   res.json({ message: "Poll started" });
@@ -41,15 +65,14 @@ const getPollStatus = (req, res) => {
 
 const getPollResult = (req, res) => {
   const poll = getPoll();
-
   if (poll.active) {
     return res.status(400).json({ error: "Poll still active" });
   }
 
-  const totalVotes = poll.votes.A + poll.votes.B + poll.votes.C;
+  const totalVotes = Object.values(poll.votes).reduce((sum, count) => sum + count, 0);
   const results = poll.options.map((option) => ({
     option,
-    votes: poll.votes[option],
+    votes: poll.votes[option] || 0,
     percentage:
       totalVotes > 0 ? ((poll.votes[option] / totalVotes) * 100).toFixed(2) : 0,
   }));

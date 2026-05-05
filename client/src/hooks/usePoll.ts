@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { startPollAPI, fetchPollStatusAPI, fetchPollResultsAPI } from "../api/pollService";
+import {
+  startPollAPI,
+  fetchPollStatusAPI,
+  fetchPollResultsAPI,
+} from "../api/pollService";
 
 export interface PollResult {
   option: string;
@@ -13,17 +17,20 @@ export const usePoll = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [results, setResults] = useState<PollResult[]>([]);
   const [totalVotes, setTotalVotes] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const startPoll = async (options: string[]) => {
     if (!question.trim() || options.length < 2) return;
+    setError(null);
     try {
       await startPollAPI(question, options);
       setActive(true);
       setTimeLeft(30000);
       setResults([]);
       setTotalVotes(0);
-    } catch (error) {
-      console.error("Error starting poll:", error);
+    } catch (err: any) {
+      console.error("Error starting poll:", err);
+      setError(err.message || "An unexpected error occurred");
     }
   };
 
@@ -76,6 +83,7 @@ export const usePoll = () => {
     timeLeft,
     results,
     totalVotes,
+    error,
     startPoll,
   };
 };
