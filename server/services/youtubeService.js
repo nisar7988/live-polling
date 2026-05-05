@@ -51,7 +51,7 @@ function mockPollYouTubeChat(poll) {
 
       if (!poll.voters[userId]) {
         poll.votes[text]++;
-        poll.voters[userId] = text;
+        poll.voters[userId] = { option: text, userName: `Mock User ${userId.replace('mock_user_', '')}` };
       }
     }
   } catch (error) {
@@ -218,10 +218,10 @@ async function pollYouTubeChat() {
       if (matchedOption) {
         if (!poll.voters[userId]) {
           poll.votes[matchedOption]++;
-          poll.voters[userId] = matchedOption;
+          poll.voters[userId] = { option: matchedOption, userName: userName };
           console.log(`[VOTE SUCCESS] ${userName} voted for: ${matchedOption}`);
         } else {
-          console.log(`[VOTE SKIP] ${userName} already voted (current vote: ${poll.voters[userId]})`);
+          console.log(`[VOTE SKIP] ${userName} already voted (current vote: ${poll.voters[userId].option})`);
         }
       }
     });
@@ -296,7 +296,6 @@ async function getActiveViewerCount() {
       },
       headers: { Authorization: `Bearer ${token}` }
     });
-console.log(videoResponse.data.items[0],"videoResponse.data.items")
     const video = videoResponse.data.items?.[0];
     if (video?.liveStreamingDetails?.concurrentViewers) {
       return parseInt(video.liveStreamingDetails.concurrentViewers, 10);

@@ -13,8 +13,12 @@ function App() {
     totalVotes,
     error,
     viewerCount,
+    correctAnswerMarked,
+    correctAnswer,
+    leaderboard,
     startPoll,
     resetPoll,
+    markCorrectAnswer,
   } = usePoll();
 
   return (
@@ -36,6 +40,10 @@ function App() {
           totalVotes={totalVotes}
           results={results}
           resetPoll={resetPoll}
+          correctAnswerMarked={correctAnswerMarked}
+          correctAnswer={correctAnswer}
+          leaderboard={leaderboard}
+          markCorrectAnswer={markCorrectAnswer}
         />
       )}
     </div>

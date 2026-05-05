@@ -3,12 +3,20 @@ import {
   startPollAPI,
   fetchPollStatusAPI,
   fetchPollResultsAPI,
+  markCorrectAnswerAPI,
+  fetchLeaderboardAPI,
 } from "../api/pollService";
 
 export interface PollResult {
   option: string;
   votes: number;
   percentage: string;
+}
+
+export interface LeaderboardEntry {
+  userName: string;
+  correct: number;
+  total: number;
 }
 
 export const usePoll = () => {
@@ -19,6 +27,9 @@ export const usePoll = () => {
   const [totalVotes, setTotalVotes] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [viewerCount, setViewerCount] = useState(0);
+  const [correctAnswerMarked, setCorrectAnswerMarked] = useState(false);
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
   const startPoll = async (options: string[], duration: number = 30000) => {
     if (options.length < 2) return;
@@ -29,6 +40,8 @@ export const usePoll = () => {
       setTimeLeft(duration);
       setResults([]);
       setTotalVotes(0);
+      setCorrectAnswerMarked(false);
+      setCorrectAnswer(null);
     } catch (err: any) {
       console.error("Error starting poll:", err);
       setError(err.message || "An unexpected error occurred");
@@ -41,6 +54,8 @@ export const usePoll = () => {
     setTimeLeft(0);
     setTotalVotes(0);
     setError(null);
+    setCorrectAnswerMarked(false);
+    setCorrectAnswer(null);
   };
 
   const fetchStatus = async () => {
@@ -51,6 +66,9 @@ export const usePoll = () => {
       if (data.viewerCount !== undefined) {
         setViewerCount(data.viewerCount);
       }
+      setCorrectAnswerMarked(data.correctAnswerMarked || false);
+      setCorrectAnswer(data.correctAnswer || null);
+
       if (data.error) {
         setError(data.error);
         setActive(false);
@@ -67,9 +85,32 @@ export const usePoll = () => {
       const data = await fetchPollResultsAPI();
       setResults(data.results);
       setTotalVotes(data.totalVotes);
+      setCorrectAnswerMarked(data.correctAnswerMarked || false);
+      setCorrectAnswer(data.correctAnswer || null);
       setActive(false);
     } catch (error) {
       console.error("Error fetching results:", error);
+    }
+  };
+
+  const markCorrectAnswer = async (answer: string) => {
+    try {
+      await markCorrectAnswerAPI(answer);
+      setCorrectAnswerMarked(true);
+      setCorrectAnswer(answer);
+      await fetchLeaderboard();
+    } catch (error: any) {
+      console.error("Error marking correct answer:", error);
+      setError(error.message || "Failed to mark answer");
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    try {
+      const data = await fetchLeaderboardAPI();
+      setLeaderboard(data.leaderboard || []);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
     }
   };
 
@@ -103,7 +144,12 @@ export const usePoll = () => {
     totalVotes,
     error,
     viewerCount,
+    correctAnswerMarked,
+    correctAnswer,
+    leaderboard,
     startPoll,
     resetPoll,
+    markCorrectAnswer,
+    fetchLeaderboard,
   };
 };

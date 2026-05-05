@@ -28,3 +28,24 @@ export const fetchPollResultsAPI = async () => {
   }
   return response.json();
 };
+
+export const markCorrectAnswerAPI = async (correctAnswer: string) => {
+  const response = await fetch(`${API_BASE}/mark-correct`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ correctAnswer }),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to mark correct answer");
+  }
+  return response.json();
+};
+
+export const fetchLeaderboardAPI = async () => {
+  const response = await fetch(`${API_BASE}/leaderboard`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch leaderboard");
+  }
+  return response.json();
+};

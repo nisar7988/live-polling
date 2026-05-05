@@ -38,7 +38,8 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
   const [timeOption, setTimeOption] = useState("30");
 
   const handleStart = () => {
-    const duration = timeOption === "timeless" ? 0 : parseInt(timeOption) * 1000;
+    const duration =
+      timeOption === "timeless" ? 0 : parseInt(timeOption) * 1000;
     startPoll(["A", "B", "C", "D"], duration);
   };
 
@@ -253,82 +254,11 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
           <div style={styles.inner}>
             {/* Header */}
             <div style={styles.header}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={styles.moveIcon}>
-                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <path
-                      d="M11 2v18M2 11h18"
-                      stroke="white"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M8 5l3-3 3 3M8 17l3 3 3-3M5 8l-3 3 3 3M17 8l3 3-3 3"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: 12 }}
+              ></div>
 
               <p style={styles.title}>Select Poll Type</p>
-
-              <div style={styles.headerIcons}>
-                <div style={styles.trophyIcon}>
-                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                    <path
-                      d="M10 13c-3.5 0-6-2.5-6-6V3h12v4c0 3.5-2.5 6-6 6z"
-                      fill="white"
-                      opacity="0.9"
-                    />
-                    <path
-                      d="M4 5H2c0 2.5 1.5 4 4 4.5M16 5h2c0 2.5-1.5 4-4 4.5"
-                      stroke="white"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M7 13v2M13 13v2M5 17h10"
-                      stroke="white"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div style={{ display: "flex", gap: 2, marginTop: 1 }}>
-                    {["2", "1", "3"].map((n) => (
-                      <span
-                        key={n}
-                        style={{ color: "white", fontSize: 8, fontWeight: 800 }}
-                      >
-                        {n}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div style={styles.iconBtn}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
-                      d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"
-                      stroke="white"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-                <div style={styles.iconBtn}>
-                  <svg width="16" height="4" viewBox="0 0 16 4" fill="none">
-                    <path
-                      d="M1 2h14"
-                      stroke="white"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </div>
-              </div>
             </div>
 
             {/* Poll Type Tabs */}
@@ -339,7 +269,7 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
                   style={{
                     ...styles.tab(pollType === pt.id),
                     opacity: pt.id === "single" ? 1 : 0.4,
-                    cursor: pt.id === "single" ? "pointer" : "not-allowed"
+                    cursor: pt.id === "single" ? "pointer" : "not-allowed",
                   }}
                   onClick={() => {
                     if (pt.id === "single") setPollType(pt.id);
@@ -388,21 +318,31 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
             </div>
 
             {/* Start Button & Error */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              {error && <div style={{ color: '#ff6b6b', fontSize: 14 }}>{error}</div>}
-              <button 
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 12,
+                marginBottom: 20,
+              }}
+            >
+              {error && (
+                <div style={{ color: "#ff6b6b", fontSize: 14 }}>{error}</div>
+              )}
+              <button
                 onClick={handleStart}
                 style={{
-                  background: '#3b6ef5',
-                  color: 'white',
-                  border: 'none',
+                  background: "#3b6ef5",
+                  color: "white",
+                  border: "none",
                   borderRadius: 14,
-                  padding: '14px 40px',
+                  padding: "14px 40px",
                   fontSize: 18,
                   fontWeight: 800,
-                  cursor: 'pointer',
-                  width: '100%',
-                  boxShadow: '0 4px 12px rgba(59, 110, 245, 0.4)'
+                  cursor: "pointer",
+                  width: "100%",
+                  boxShadow: "0 4px 12px rgba(59, 110, 245, 0.4)",
                 }}
               >
                 Start Poll
@@ -417,7 +357,9 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
                 <Avatar color="#4a7bc6" />
               </div>
               <span style={styles.footerText}>
-                {viewerCount > 0 ? `${viewerCount} students have joined` : "Waiting for students..."}
+                {viewerCount > 0
+                  ? `${viewerCount} students have joined`
+                  : "Waiting for students..."}
               </span>
             </div>
           </div>

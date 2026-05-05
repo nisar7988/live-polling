@@ -11,10 +11,13 @@ let poll = {
   nextPageToken: null,
   liveChatId: null,
   error: null,
+  correctAnswerMarked: false,
+  correctAnswer: null,
 };
 
 let pollInterval = null;
 let viewerCount = 0;
+let leaderboard = {}; // { userId: { userName: string, correct: number, total: number } }
 
 module.exports = {
   getPoll: () => poll,
@@ -23,4 +26,6 @@ module.exports = {
   setPollInterval: (interval) => { pollInterval = interval; },
   getViewerCount: () => viewerCount,
   setViewerCount: (count) => { viewerCount = count; },
+  getLeaderboard: () => leaderboard,
+  setLeaderboard: (newLeaderboard) => { leaderboard = newLeaderboard; },
 };
