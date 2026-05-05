@@ -1,6 +1,30 @@
 const axios = require("axios");
 const { getPoll } = require("../store/pollStore");
 
+async function refreshAccessToken() {
+  if (!process.env.YOUTUBE_REFRESH_TOKEN) {
+    console.warn("No YOUTUBE_REFRESH_TOKEN found, cannot refresh access token.");
+    return null;
+  }
+
+  try {
+    const response = await axios.post("https://oauth2.googleapis.com/token", {
+      client_id: process.env.YOUTUBE_CLIENT_ID,
+      client_secret: process.env.YOUTUBE_CLIENT_SECRET,
+      refresh_token: process.env.YOUTUBE_REFRESH_TOKEN,
+      grant_type: "refresh_token",
+    });
+
+    const newAccessToken = response.data.access_token;
+    process.env.YOUTUBE_ACCESS_TOKEN = newAccessToken;
+    console.log("Successfully refreshed YouTube access token.");
+    return newAccessToken;
+  } catch (error) {
+    console.error("Error refreshing YouTube access token:", error.response?.data || error.message);
+    return null;
+  }
+}
+
 function mockPollYouTubeChat(poll) {
   try {
     // Generate 1 to 5 random mock votes
@@ -27,28 +51,45 @@ function mockPollYouTubeChat(poll) {
 }
 
 async function getActiveLiveChatId() {
-  if (!process.env.YOUTUBE_ACCESS_TOKEN) {
-    console.warn("No YOUTUBE_ACCESS_TOKEN found, cannot fetch live chat ID dynamically.");
+  if (!process.env.YOUTUBE_ACCESS_TOKEN && !process.env.YOUTUBE_REFRESH_TOKEN) {
+    console.warn("No YouTube credentials found (Access or Refresh token).");
     return null;
   }
 
-  try {
+  const fetchId = async (token) => {
     const params = {
       part: "snippet,contentDetails",
       mine: true,
     };
-
-    const response = await axios.get(
+    return await axios.get(
       "https://www.googleapis.com/youtube/v3/liveBroadcasts",
       {
         params,
-        headers: {
-          Authorization: `Bearer ${process.env.YOUTUBE_ACCESS_TOKEN}`,
-        },
-      },
+        headers: { Authorization: `Bearer ${token}` },
+      }
     );
+  };
 
-    // Filter for active broadcasts or just take the first one if it exists
+  try {
+    let token = process.env.YOUTUBE_ACCESS_TOKEN;
+    let response;
+    
+    try {
+      response = await fetchId(token);
+    } catch (error) {
+      if (error.response?.status === 401) {
+        console.log("Access token expired, attempting refresh...");
+        token = await refreshAccessToken();
+        if (token) {
+          response = await fetchId(token);
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
+
     const broadcasts = response.data.items || [];
     const activeBroadcast = broadcasts.find(b => b.snippet.liveChatId) || broadcasts[0];
     const liveChatId = activeBroadcast?.snippet?.liveChatId;
@@ -88,19 +129,35 @@ async function pollYouTubeChat() {
       params.pageToken = poll.nextPageToken;
     }
 
-    // If using OAuth, add Authorization header
-    const headers = {};
-    if (process.env.YOUTUBE_ACCESS_TOKEN) {
-      headers.Authorization = `Bearer ${process.env.YOUTUBE_ACCESS_TOKEN}`;
-    }
+    const fetchMessages = async (token) => {
+      const headers = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      return await axios.get(
+        "https://www.googleapis.com/youtube/v3/liveChat/messages",
+        { params, headers }
+      );
+    };
 
-    const response = await axios.get(
-      "https://www.googleapis.com/youtube/v3/liveChat/messages",
-      {
-        params,
-        headers,
-      },
-    );
+    let token = process.env.YOUTUBE_ACCESS_TOKEN;
+    let response;
+
+    try {
+      response = await fetchMessages(token);
+    } catch (error) {
+      if (error.response?.status === 401 && process.env.YOUTUBE_REFRESH_TOKEN) {
+        console.log("Access token expired during polling, attempting refresh...");
+        token = await refreshAccessToken();
+        if (token) {
+          response = await fetchMessages(token);
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
     console.log(response.data,"response.data")
 
     const messages = response.data.items || [];

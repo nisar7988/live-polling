@@ -10,11 +10,16 @@ const startPoll = async (req, res) => {
   }
 
   // Fetch active live chat ID dynamically
-  const liveChatId = await getActiveLiveChatId();
+  let liveChatId = await getActiveLiveChatId();
+
+  if (!liveChatId) {
+    console.warn("Could not fetch active live chat ID dynamically. Falling back to LIVE_CHAT_ID from .env");
+    liveChatId = process.env.LIVE_CHAT_ID;
+  }
 
   if (!liveChatId) {
     return res.status(400).json({ 
-      error: "No active YouTube live broadcast found. Please make sure you are live before starting the poll." 
+      error: "No active YouTube live broadcast found and no fallback LIVE_CHAT_ID provided. Please make sure you are live or provide a LIVE_CHAT_ID in .env before starting the poll." 
     });
   }
 
