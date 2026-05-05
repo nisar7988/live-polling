@@ -2,7 +2,7 @@ const { getPoll, setPoll, getPollInterval, setPollInterval } = require("../store
 const { pollYouTubeChat, getActiveLiveChatId } = require("../services/youtubeService");
 
 const startPoll = async (req, res) => {
-  const { question, options = ["A", "B", "C"], duration = 30000 } = req.body;
+  const { pollType = "Single Choice", duration = 30000 } = req.body;
   const poll = getPoll();
 
   if (poll.active) {
@@ -23,19 +23,26 @@ const startPoll = async (req, res) => {
     });
   }
 
+  let options = ["A", "B", "C", "D"];
+  if (pollType === "Integer Type") {
+    options = []; // For integer type, we track all numbers that appear
+  }
+
   const uppercasedOptions = options.map(o => o.toUpperCase());
   const initialVotes = {};
   uppercasedOptions.forEach(option => {
     initialVotes[option] = 0;
   });
 
+  const now = Date.now();
   setPoll({
-    question,
+    question: "",
+    pollType,
     options: uppercasedOptions,
     votes: initialVotes,
     voters: {},
-    startTime: Date.now(),
-    endTime: Date.now() + duration,
+    startTime: now,
+    endTime: now + duration,
     active: true,
     nextPageToken: null,
     liveChatId,

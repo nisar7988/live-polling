@@ -19,19 +19,27 @@ export const usePoll = () => {
   const [totalVotes, setTotalVotes] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const startPoll = async (options: string[]) => {
-    if (!question.trim() || options.length < 2) return;
+  const startPoll = async (options: string[], duration: number = 30000) => {
+    if (options.length < 2) return;
     setError(null);
     try {
-      await startPollAPI(question, options);
+      await startPollAPI(question || "Live Poll", options, duration);
       setActive(true);
-      setTimeLeft(30000);
+      setTimeLeft(duration);
       setResults([]);
       setTotalVotes(0);
     } catch (err: any) {
       console.error("Error starting poll:", err);
       setError(err.message || "An unexpected error occurred");
     }
+  };
+
+  const resetPoll = () => {
+    setActive(false);
+    setResults([]);
+    setTimeLeft(0);
+    setTotalVotes(0);
+    setError(null);
   };
 
   const fetchStatus = async () => {
@@ -85,5 +93,6 @@ export const usePoll = () => {
     totalVotes,
     error,
     startPoll,
+    resetPoll,
   };
 };

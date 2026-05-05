@@ -31,13 +31,22 @@ function mockPollYouTubeChat(poll) {
     const numVotes = Math.floor(Math.random() * 5) + 1;
     
     for (let i = 0; i < numVotes; i++) {
-      const randomOptionIndex = Math.floor(Math.random() * poll.options.length);
-      const text = poll.options[randomOptionIndex];
+      let text;
+      if (poll.pollType === "Integer Type") {
+        // Generate a random number between 1 and 100
+        text = String(Math.floor(Math.random() * 100) + 1);
+      } else {
+        const randomOptionIndex = Math.floor(Math.random() * poll.options.length);
+        text = poll.options[randomOptionIndex];
+      }
       
       const userId = `mock_user_${Math.floor(Math.random() * 1000000)}`;
 
       if (poll.votes[text] === undefined) {
         poll.votes[text] = 0;
+        if (!poll.options.includes(text)) {
+          poll.options.push(text);
+        }
       }
 
       if (!poll.voters[userId]) {
@@ -169,16 +178,40 @@ async function pollYouTubeChat() {
     poll.nextPageToken = response.data.nextPageToken;
 
     messages.forEach((message) => {
+      const publishedAt = new Date(message.snippet.publishedAt).getTime();
+      
+      // Skip messages sent before the poll started
+      if (publishedAt < poll.startTime) {
+        console.log(`[VOTE SKIP] Message before poll start: ${message.snippet.displayMessage}`);
+        return;
+      }
+
       const text = message.snippet.displayMessage.trim().toUpperCase();
       const userId = message.authorDetails.channelId;
       const userName = message.authorDetails.displayName;
 
       console.log(`[CHAT] ${userName}: "${text}"`);
 
-      // Find if any option is at the start of the message
-      const matchedOption = poll.options.find(option => 
-        text.includes(option)
-      );
+      let matchedOption = null;
+
+      if (poll.pollType === "Integer Type") {
+        // Find the first number in the text
+        const match = text.match(/\d+/);
+        if (match) {
+          matchedOption = match[0];
+          if (poll.votes[matchedOption] === undefined) {
+            poll.votes[matchedOption] = 0;
+            if (!poll.options.includes(matchedOption)) {
+              poll.options.push(matchedOption);
+            }
+          }
+        }
+      } else {
+        // Single Choice: Find if any option (A, B, C, D) is in the message
+        matchedOption = poll.options.find(option => 
+          text === option || text.startsWith(option + " ") || text.includes(" " + option)
+        );
+      }
 
       if (matchedOption) {
         if (!poll.voters[userId]) {

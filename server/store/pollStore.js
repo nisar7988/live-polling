@@ -1,7 +1,9 @@
 let poll = {
   question: "",
-  options: ["A", "B", "C"],
-  votes: { A: 0, B: 0, C: 0 },
+  pollType: "Single Choice", // Default poll type
+  duration: 30000, // Default duration in ms
+  options: ["A", "B", "C", "D"],
+  votes: { A: 0, B: 0, C: 0, D: 0 },
   voters: {},
   startTime: 0,
   endTime: 0,

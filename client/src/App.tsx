@@ -1,6 +1,5 @@
-import "./App.css";
 import { usePoll } from "./hooks/usePoll";
-import { CreatePoll } from "./components/CreatePoll";
+import CreatePoll from "./components/CreatePoll";
 import { ActivePoll } from "./components/ActivePoll";
 import { PollResults } from "./components/PollResults";
 
@@ -14,12 +13,11 @@ function App() {
     totalVotes,
     error,
     startPoll,
+    resetPoll,
   } = usePoll();
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1>YouTube Live Polling System</h1>
-      
+    <div>
       {!active && results.length === 0 && (
         <CreatePoll
           question={question}
@@ -29,12 +27,14 @@ function App() {
         />
       )}
 
-      {active && (
-        <ActivePoll question={question} timeLeft={timeLeft} />
-      )}
+      {active && <ActivePoll question={question} timeLeft={timeLeft} />}
 
       {!active && results.length > 0 && (
-        <PollResults totalVotes={totalVotes} results={results} />
+        <PollResults
+          totalVotes={totalVotes}
+          results={results}
+          resetPoll={resetPoll}
+        />
       )}
     </div>
   );
