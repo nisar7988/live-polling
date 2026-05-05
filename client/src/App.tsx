@@ -12,6 +12,7 @@ function App() {
     results,
     totalVotes,
     error,
+    viewerCount,
     startPoll,
     resetPoll,
   } = usePoll();
@@ -24,6 +25,7 @@ function App() {
           setQuestion={setQuestion}
           startPoll={startPoll}
           error={error}
+          viewerCount={viewerCount}
         />
       )}
 

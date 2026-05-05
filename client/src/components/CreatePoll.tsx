@@ -33,7 +33,7 @@ function Avatar({ color }) {
   );
 }
 
-export default function CreatePoll({ startPoll, error }: any) {
+export default function CreatePoll({ startPoll, error, viewerCount }: any) {
   const [pollType, setPollType] = useState("single");
   const [timeOption, setTimeOption] = useState("30");
 
@@ -416,7 +416,9 @@ export default function CreatePoll({ startPoll, error }: any) {
                 <Avatar color="#c64a7a" />
                 <Avatar color="#4a7bc6" />
               </div>
-              <span style={styles.footerText}>208 students have joined</span>
+              <span style={styles.footerText}>
+                {viewerCount > 0 ? `${viewerCount} students have joined` : "Waiting for students..."}
+              </span>
             </div>
           </div>
         </div>

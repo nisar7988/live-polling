@@ -18,6 +18,7 @@ export const usePoll = () => {
   const [results, setResults] = useState<PollResult[]>([]);
   const [totalVotes, setTotalVotes] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [viewerCount, setViewerCount] = useState(0);
 
   const startPoll = async (options: string[], duration: number = 30000) => {
     if (options.length < 2) return;
@@ -47,6 +48,15 @@ export const usePoll = () => {
       const data = await fetchPollStatusAPI();
       setActive(data.active);
       setTimeLeft(data.timeLeft);
+      if (data.viewerCount !== undefined) {
+        setViewerCount(data.viewerCount);
+      }
+      if (data.error) {
+        setError(data.error);
+        setActive(false);
+        setTimeLeft(0);
+        setResults([]);
+      }
     } catch (error) {
       console.error("Error fetching status:", error);
     }
@@ -92,6 +102,7 @@ export const usePoll = () => {
     results,
     totalVotes,
     error,
+    viewerCount,
     startPoll,
     resetPoll,
   };

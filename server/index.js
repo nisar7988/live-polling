@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const pollRoutes = require("./routes/pollRoutes");
-const { getActiveLiveChatId } = require("./services/youtubeService");
+const { getActiveLiveChatId, startViewerCountPoller } = require("./services/youtubeService");
 const { getPoll } = require("./store/pollStore");
 
 const app = express();
@@ -24,6 +24,9 @@ app.listen(PORT, async () => {
       getPoll().liveChatId = liveChatId;
       console.log("Initial live chat ID fetched successfully:", liveChatId);
     }
+    
+    // Start polling viewer count
+    startViewerCountPoller();
   } catch (error) {
     console.error("Error fetching initial live chat ID:", error.message);
   }

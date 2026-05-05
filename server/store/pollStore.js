@@ -10,13 +10,17 @@ let poll = {
   active: false,
   nextPageToken: null,
   liveChatId: null,
+  error: null,
 };
 
 let pollInterval = null;
+let viewerCount = 0;
 
 module.exports = {
   getPoll: () => poll,
   setPoll: (newPoll) => { poll = newPoll; },
   getPollInterval: () => pollInterval,
   setPollInterval: (interval) => { pollInterval = interval; },
+  getViewerCount: () => viewerCount,
+  setViewerCount: (count) => { viewerCount = count; },
 };

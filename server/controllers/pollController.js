@@ -1,4 +1,4 @@
-const { getPoll, setPoll, getPollInterval, setPollInterval } = require("../store/pollStore");
+const { getPoll, setPoll, getPollInterval, setPollInterval, getViewerCount } = require("../store/pollStore");
 const { pollYouTubeChat, getActiveLiveChatId } = require("../services/youtubeService");
 
 const startPoll = async (req, res) => {
@@ -46,6 +46,7 @@ const startPoll = async (req, res) => {
     active: true,
     nextPageToken: null,
     liveChatId,
+    error: null,
   });
 
   // Start polling every 8-10 seconds
@@ -72,7 +73,7 @@ const startPoll = async (req, res) => {
 const getPollStatus = (req, res) => {
   const poll = getPoll();
   const timeLeft = poll.active ? Math.max(0, poll.endTime - Date.now()) : 0;
-  res.json({ active: poll.active, timeLeft });
+  res.json({ active: poll.active, timeLeft, error: poll.error || null, viewerCount: getViewerCount() });
 };
 
 const getPollResult = (req, res) => {

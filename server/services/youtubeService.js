@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { getPoll } = require("../store/pollStore");
+const { getPoll, getPollInterval } = require("../store/pollStore");
 
 async function refreshAccessToken() {
   if (!process.env.YOUTUBE_REFRESH_TOKEN) {
@@ -159,6 +159,8 @@ async function pollYouTubeChat() {
 
     try {
       response = await fetchMessages(token);
+      console.log(response.data,"response.data") // Removed verbose logging
+
     } catch (error) {
       if (error.response?.status === 401 && process.env.YOUTUBE_REFRESH_TOKEN) {
         console.log("Access token expired during polling, attempting refresh...");
@@ -225,10 +227,100 @@ async function pollYouTubeChat() {
     });
   } catch (error) {
     console.error("Error polling YouTube chat:", error.message);
+    if (error.response && error.response.data) {
+      console.error("Error details:", JSON.stringify(error.response.data, null, 2));
+    }
+    
+    // Set error on the poll and stop it
+    const errMessage = error.response?.data?.error?.message || error.message;
+    poll.error = `YouTube API Error: ${errMessage}`;
+    poll.active = false;
+    
+    const interval = getPollInterval();
+    if (interval) {
+      clearInterval(interval);
+    }
   }
+}
+
+async function getActiveViewerCount() {
+  if (!process.env.YOUTUBE_ACCESS_TOKEN && !process.env.YOUTUBE_REFRESH_TOKEN) {
+    return 0;
+  }
+
+  const fetchId = async (token) => {
+    const params = {
+      part: "snippet,contentDetails,status",
+      mine: true,
+    };
+    return await axios.get(
+      "https://www.googleapis.com/youtube/v3/liveBroadcasts",
+      {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+  };
+
+  try {
+    let token = process.env.YOUTUBE_ACCESS_TOKEN;
+    let response;
+    try {
+      response = await fetchId(token);
+    } catch (error) {
+      if (error.response?.status === 401 && process.env.YOUTUBE_REFRESH_TOKEN) {
+        token = await refreshAccessToken();
+        if (token) {
+          response = await fetchId(token);
+        } else {
+          return 0;
+        }
+      } else {
+        return 0;
+      }
+    }
+
+    const broadcasts = response.data.items || [];
+    const activeBroadcast = broadcasts.find(b => 
+      b.status?.lifeCycleStatus === "live"
+    ) || broadcasts[0];
+    
+    if (!activeBroadcast) return 0;
+    
+    const videoId = activeBroadcast.id;
+    
+    const videoResponse = await axios.get("https://www.googleapis.com/youtube/v3/videos", {
+      params: {
+        part: "liveStreamingDetails",
+        id: videoId,
+      },
+      headers: { Authorization: `Bearer ${token}` }
+    });
+console.log(videoResponse.data.items[0],"videoResponse.data.items")
+    const video = videoResponse.data.items?.[0];
+    if (video?.liveStreamingDetails?.concurrentViewers) {
+      return parseInt(video.liveStreamingDetails.concurrentViewers, 10);
+    }
+    return 0;
+  } catch (error) {
+    console.error("Error fetching viewer count:", error.message);
+    return 0;
+  }
+}
+
+function startViewerCountPoller() {
+  const { setViewerCount } = require("../store/pollStore");
+  const pollViewers = async () => {
+    const count = await getActiveViewerCount();
+
+    if (count > 0) setViewerCount(count);
+  };
+  pollViewers();
+  setInterval(pollViewers, 30000); // every 30s
 }
 
 module.exports = {
   pollYouTubeChat,
   getActiveLiveChatId,
+  startViewerCountPoller,
 };
