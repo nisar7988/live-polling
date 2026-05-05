@@ -58,7 +58,7 @@ async function getActiveLiveChatId() {
 
   const fetchId = async (token) => {
     const params = {
-      part: "snippet,contentDetails",
+      part: "snippet,contentDetails,status",
       mine: true,
     };
     return await axios.get(
@@ -91,7 +91,11 @@ async function getActiveLiveChatId() {
     }
 
     const broadcasts = response.data.items || [];
-    const activeBroadcast = broadcasts.find(b => b.snippet.liveChatId) || broadcasts[0];
+    
+    // Filter for broadcasts that are currently live and have a liveChatId
+    const activeBroadcast = broadcasts.find(b => 
+      b.status?.lifeCycleStatus === "live" && b.snippet?.liveChatId
+    ) || broadcasts.find(b => b.snippet?.liveChatId); // Fallback to any broadcast with a chat ID if none are explicitly "live"
     const liveChatId = activeBroadcast?.snippet?.liveChatId;
     
     if (liveChatId) {
@@ -112,6 +116,7 @@ async function pollYouTubeChat() {
   if (!poll.active) return;
 
   const liveChatId = poll.liveChatId || process.env.LIVE_CHAT_ID;
+  console.log(`[POLLING] Chat ID: ${liveChatId} | Options: [${poll.options.join(", ")}]`);
 
   // Use mock data if no live chat ID is configured or found
   if (!liveChatId) {
@@ -158,7 +163,7 @@ async function pollYouTubeChat() {
         throw error;
       }
     }
-    console.log(response.data,"response.data")
+    // console.log(response.data,"response.data") // Removed verbose logging
 
     const messages = response.data.items || [];
     poll.nextPageToken = response.data.nextPageToken;
@@ -166,10 +171,23 @@ async function pollYouTubeChat() {
     messages.forEach((message) => {
       const text = message.snippet.displayMessage.trim().toUpperCase();
       const userId = message.authorDetails.channelId;
+      const userName = message.authorDetails.displayName;
 
-      if (poll.options.includes(text) && !poll.voters[userId]) {
-        poll.votes[text]++;
-        poll.voters[userId] = text;
+      console.log(`[CHAT] ${userName}: "${text}"`);
+
+      // Find if any option is at the start of the message
+      const matchedOption = poll.options.find(option => 
+        text.includes(option)
+      );
+
+      if (matchedOption) {
+        if (!poll.voters[userId]) {
+          poll.votes[matchedOption]++;
+          poll.voters[userId] = matchedOption;
+          console.log(`[VOTE SUCCESS] ${userName} voted for: ${matchedOption}`);
+        } else {
+          console.log(`[VOTE SKIP] ${userName} already voted (current vote: ${poll.voters[userId]})`);
+        }
       }
     });
   } catch (error) {
