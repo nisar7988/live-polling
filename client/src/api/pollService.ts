@@ -1,10 +1,10 @@
 const API_BASE = "http://localhost:3001";
 
-export const startPollAPI = async (question: string) => {
+export const startPollAPI = async (question: string, options: string[]) => {
   const response = await fetch(`${API_BASE}/start-poll`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, duration: 30000 }),
+    body: JSON.stringify({ question, options, duration: 30000 }),
   });
   if (!response.ok) {
     throw new Error("Failed to start poll");

@@ -14,10 +14,10 @@ export const usePoll = () => {
   const [results, setResults] = useState<PollResult[]>([]);
   const [totalVotes, setTotalVotes] = useState(0);
 
-  const startPoll = async () => {
-    if (!question.trim()) return;
+  const startPoll = async (options: string[]) => {
+    if (!question.trim() || options.length < 2) return;
     try {
-      await startPollAPI(question);
+      await startPollAPI(question, options);
       setActive(true);
       setTimeLeft(30000);
       setResults([]);
