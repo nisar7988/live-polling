@@ -17,7 +17,7 @@ const TIME_OPTIONS = [
   { id: "timeless", label: "Timeless Poll" },
 ];
 
-function Avatar({ color }) {
+function Avatar({ color }: { color: string }) {
   return (
     <div
       style={{
@@ -146,7 +146,7 @@ export default function CreatePoll({ startPoll, error, viewerCount, resetPoll, u
       gap: 10,
       marginBottom: 14,
     },
-    tab: (active) => ({
+    tab: (active: boolean) => ({
       background: active ? "#3b6ef5" : "rgba(255,255,255,0.08)",
       border: active
         ? "2px solid rgba(255,255,255,0.2)"
@@ -192,7 +192,7 @@ export default function CreatePoll({ startPoll, error, viewerCount, resetPoll, u
       gap: 10,
       cursor: "pointer",
     },
-    radioOuter: (checked) => ({
+    radioOuter: (checked: boolean) => ({
       width: 22,
       height: 22,
       borderRadius: "50%",
@@ -206,7 +206,7 @@ export default function CreatePoll({ startPoll, error, viewerCount, resetPoll, u
       transition: "border-color 0.15s",
       background: "transparent",
     }),
-    radioDot: (checked) => ({
+    radioDot: (checked: boolean) => ({
       width: 10,
       height: 10,
       borderRadius: "50%",
@@ -326,20 +326,22 @@ export default function CreatePoll({ startPoll, error, viewerCount, resetPoll, u
                     <span style={styles.radioLabel}>{opt.label}</span>
                   </label>
                 ))}
-                <label
-                  key={timelessOption.id}
-                  style={{ ...styles.radioItem, ...styles.timelessRow }}
-                  onClick={() => setTimeOption(timelessOption.id)}
-                >
-                  <div
-                    style={styles.radioOuter(timeOption === timelessOption.id)}
+                {timelessOption && (
+                  <label
+                    key={timelessOption.id}
+                    style={{ ...styles.radioItem, ...styles.timelessRow }}
+                    onClick={() => setTimeOption(timelessOption.id)}
                   >
                     <div
-                      style={styles.radioDot(timeOption === timelessOption.id)}
-                    />
-                  </div>
-                  <span style={styles.radioLabel}>{timelessOption.label}</span>
-                </label>
+                      style={styles.radioOuter(timeOption === timelessOption.id)}
+                    >
+                      <div
+                        style={styles.radioDot(timeOption === timelessOption.id)}
+                      />
+                    </div>
+                    <span style={styles.radioLabel}>{timelessOption.label}</span>
+                  </label>
+                )}
               </div>
             </div>
 
