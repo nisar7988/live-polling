@@ -1,5 +1,5 @@
 import React from 'react';
-import type { LeaderboardEntry } from '../hooks/usePoll';
+import type { LeaderboardEntry } from '../api/pollService';
 
 interface LeaderboardProps {
   data: LeaderboardEntry[];

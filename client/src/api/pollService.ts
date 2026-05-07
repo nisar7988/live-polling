@@ -1,51 +1,65 @@
-const API_BASE = "http://localhost:3001";
+import { api } from './httpClient';
 
-export const startPollAPI = async (question: string, options: string[], duration: number) => {
-  const response = await fetch(`${API_BASE}/start-poll`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, options, duration }),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to start poll");
-  }
-  return response.json();
-};
+export interface PollStatusResponse {
+  active: boolean;
+  timeLeft: number;
+  error: string | null;
+  viewerCount: number;
+  correctAnswerMarked: boolean;
+  correctAnswer: string | null;
+}
 
-export const fetchPollStatusAPI = async () => {
-  const response = await fetch(`${API_BASE}/poll-status`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch status");
-  }
-  return response.json();
-};
+export interface PollResult {
+  option: string;
+  votes: number;
+  percentage: string | number;
+}
 
-export const fetchPollResultsAPI = async () => {
-  const response = await fetch(`${API_BASE}/poll-result`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch results");
-  }
-  return response.json();
-};
+export interface PollResultsResponse {
+  results: PollResult[];
+  totalVotes: number;
+  correctAnswerMarked: boolean;
+  correctAnswer: string | null;
+}
 
-export const markCorrectAnswerAPI = async (correctAnswer: string) => {
-  const response = await fetch(`${API_BASE}/mark-correct`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ correctAnswer }),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to mark correct answer");
-  }
-  return response.json();
-};
+export interface LeaderboardEntry {
+  userName: string;
+  correct: number;
+  total: number;
+}
 
-export const fetchLeaderboardAPI = async () => {
-  const response = await fetch(`${API_BASE}/leaderboard`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch leaderboard");
-  }
-  return response.json();
+export interface PastPoll {
+  question: string;
+  options: string[];
+  votes: Record<string, number>;
+  correctAnswer: string | null;
+  timestamp: number;
+}
+
+export interface SessionSummaryResponse {
+  leaderboard: LeaderboardEntry[];
+  pollHistory: PastPoll[];
+}
+
+export const pollService = {
+  startPoll: (question: string, options: string[], duration: number) =>
+    api.post<{ message: string }>('/start-poll', { question, options, duration }),
+
+  getStatus: () => api.get<PollStatusResponse>('/poll-status'),
+
+  getResults: () => api.get<PollResult[]>('/poll-result'), // Note: backend returns object, but hook expects results array? Wait, checking hook.
+
+  // Correcting getResults signature based on actual backend response
+  getPollResults: () => api.get<PollResultsResponse>('/poll-result'),
+
+  markCorrectAnswer: (correctAnswer: string) =>
+    api.post<{ message: string }>('/mark-correct', { correctAnswer }),
+
+  getSessionSummary: () => api.get<SessionSummaryResponse>('/session-summary'),
+
+  resetSession: () => api.post<{ message: string }>('/reset-session'),
+
+  stopPoll: () => api.post<{ message: string }>('/stop-poll'),
+
+  resetPoll: () => api.post<{ message: string }>('/reset-poll'),
 };

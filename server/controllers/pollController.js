@@ -1,31 +1,90 @@
-const { getPoll, setPoll, getPollInterval, setPollInterval, getViewerCount, getLeaderboard, setLeaderboard } = require("../store/pollStore");
+const { 
+  getPoll, 
+  setPoll, 
+  getPollInterval, 
+  setPollInterval, 
+  getViewerCount, 
+  getLeaderboard, 
+  setLeaderboard,
+  getPollHistory,
+  setPollHistory,
+  saveSession,
+  clearSessionData
+} = require("../store/pollStore");
 const { pollYouTubeChat, getActiveLiveChatId } = require("../services/youtubeService");
+const authService = require("../services/authService");
+
+const getAuthUrl = async (req, res) => {
+  try {
+    const url = await authService.getAuthUrl();
+    res.json({ url });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const handleAuthCallback = async (req, res) => {
+  const code = req.query.code || req.body.code;
+  if (!code) {
+    return res.status(400).send("<h1>Authentication Failed</h1><p>No code provided.</p>");
+  }
+  try {
+    await authService.handleCallback(code);
+    res.send(`
+      <html>
+        <body style="font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #080820; color: white;">
+          <h1 style="color: #10b981;">Login Successful!</h1>
+          <p>You have successfully authenticated with YouTube.</p>
+          <p>You can now close this window and return to the app.</p>
+          <script>
+            setTimeout(() => window.close(), 3000);
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    res.status(500).send(`<h1>Authentication Error</h1><p>${error.message}</p>`);
+  }
+};
+
+const getAuthStatus = async (req, res) => {
+  try {
+    const user = await authService.getAuthenticatedUser();
+    res.json({ isAuthenticated: !!user, user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const logout = (req, res) => {
+  authService.logout();
+  res.json({ message: "Logged out successfully" });
+};
 
 const startPoll = async (req, res) => {
-  const { pollType = "Single Choice", duration = 30000 } = req.body;
+  const { pollType = "Single Choice", duration = 30000, question = "" } = req.body;
   const poll = getPoll();
 
   if (poll.active) {
     return res.status(400).json({ error: "Poll already active" });
   }
 
-  // Fetch active live chat ID dynamically
+  const user = await authService.getAuthenticatedUser();
+  if (!user) {
+    return res.status(401).json({ error: "YouTube authentication required." });
+  }
+
   let liveChatId = await getActiveLiveChatId();
 
   if (!liveChatId) {
-    console.warn("Could not fetch active live chat ID dynamically. Falling back to LIVE_CHAT_ID from .env");
-    liveChatId = process.env.LIVE_CHAT_ID;
-  }
-
-  if (!liveChatId) {
     return res.status(400).json({ 
-      error: "No active YouTube live broadcast found and no fallback LIVE_CHAT_ID provided. Please make sure you are live or provide a LIVE_CHAT_ID in .env before starting the poll." 
+      error: "No active YouTube live broadcast found. Please go live before starting." 
     });
   }
 
   let options = ["A", "B", "C", "D"];
   if (pollType === "Integer Type") {
-    options = []; // For integer type, we track all numbers that appear
+    options = []; 
   }
 
   const uppercasedOptions = options.map(o => o.toUpperCase());
@@ -36,7 +95,7 @@ const startPoll = async (req, res) => {
 
   const now = Date.now();
   setPoll({
-    question: "",
+    question,
     pollType,
     options: uppercasedOptions,
     votes: initialVotes,
@@ -51,21 +110,21 @@ const startPoll = async (req, res) => {
     correctAnswer: null,
   });
 
-  // Start polling every 8-10 seconds
   const interval = setInterval(pollYouTubeChat, 8000);
   setPollInterval(interval);
 
-  // Stop poll after duration
   setTimeout(async () => {
-    clearInterval(getPollInterval());
+    const currentInterval = getPollInterval();
+    if (currentInterval) {
+      clearInterval(currentInterval);
+    }
     const poll = getPoll();
     poll.active = false;
+    saveSession();
     
-    // Refresh chat ID for the next poll
     const nextLiveChatId = await getActiveLiveChatId();
     if (nextLiveChatId) {
       poll.liveChatId = nextLiveChatId;
-      console.log("Live chat ID refreshed after poll:", nextLiveChatId);
     }
   }, duration);
 
@@ -111,18 +170,15 @@ const markCorrectAnswer = (req, res) => {
   }
 
   if (poll.correctAnswerMarked) {
-    return res.status(400).json({ error: "Correct answer already marked for this poll" });
+    return res.status(400).json({ error: "Already marked" });
   }
 
   poll.correctAnswerMarked = true;
   poll.correctAnswer = correctAnswer;
 
   const leaderboard = getLeaderboard();
-
-  // Update leaderboard based on voters
   for (const userId in poll.voters) {
     const voterInfo = poll.voters[userId];
-    // fallback if old format without userName is somehow there
     const optionVoted = typeof voterInfo === 'string' ? voterInfo : voterInfo.option;
     const userName = typeof voterInfo === 'string' ? `User ${userId}` : voterInfo.userName;
 
@@ -134,21 +190,90 @@ const markCorrectAnswer = (req, res) => {
     if (optionVoted === correctAnswer) {
       leaderboard[userId].correct += 1;
     }
-    // Update userName in case they changed it
     leaderboard[userId].userName = userName;
   }
 
+  // Save to history
+  const history = getPollHistory();
+  history.push({
+    question: poll.question,
+    options: poll.options,
+    votes: poll.votes,
+    correctAnswer: poll.correctAnswer,
+    timestamp: poll.startTime,
+  });
+
   setLeaderboard(leaderboard);
-  res.json({ message: "Correct answer marked and leaderboard updated" });
+  setPollHistory(history);
+  saveSession();
+
+  res.json({ message: "Correct answer marked and session updated" });
 };
 
-const getLeaderboardData = (req, res) => {
+const getSessionSummary = (req, res) => {
   const leaderboard = getLeaderboard();
-  
-  // Convert object to array and sort by correct answers descending
   const sortedLeaderboard = Object.values(leaderboard).sort((a, b) => b.correct - a.correct);
   
-  res.json({ leaderboard: sortedLeaderboard });
+  res.json({ 
+    leaderboard: sortedLeaderboard,
+    pollHistory: getPollHistory()
+  });
+};
+
+const resetSession = (req, res) => {
+  clearSessionData();
+  res.json({ message: "Session reset successfully" });
+};
+
+const stopPoll = async (req, res) => {
+  const poll = getPoll();
+  if (!poll.active) {
+    return res.status(400).json({ error: "No active poll" });
+  }
+
+  clearInterval(getPollInterval());
+  setPollInterval(null);
+  poll.active = false;
+  poll.endTime = Date.now();
+  saveSession();
+
+  try {
+    const nextLiveChatId = await getActiveLiveChatId();
+    if (nextLiveChatId) {
+      poll.liveChatId = nextLiveChatId;
+    }
+  } catch (err) {
+    console.error("Error refreshing chat ID:", err);
+  }
+
+  res.json({ message: "Poll stopped" });
+};
+
+const resetPoll = (req, res) => {
+  clearInterval(getPollInterval());
+  setPollInterval(null);
+
+  const initialPoll = {
+    question: "",
+    pollType: "Single Choice",
+    duration: 30000,
+    options: ["A", "B", "C", "D"],
+    votes: { A: 0, B: 0, C: 0, D: 0 },
+    voters: {},
+    startTime: 0,
+    endTime: 0,
+    active: false,
+    nextPageToken: null,
+    liveChatId: getPoll().liveChatId,
+    error: null,
+    correctAnswerMarked: false,
+    correctAnswer: null,
+  };
+
+  setPoll(initialPoll);
+  saveSession();
+  
+  res.json({ message: "Current poll reset" });
 };
 
 module.exports = {
@@ -156,5 +281,12 @@ module.exports = {
   getPollStatus,
   getPollResult,
   markCorrectAnswer,
-  getLeaderboard: getLeaderboardData,
+  getSessionSummary,
+  resetSession,
+  stopPoll,
+  resetPoll,
+  getAuthUrl,
+  handleAuthCallback,
+  getAuthStatus,
+  logout,
 };

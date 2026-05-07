@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { PollResult, LeaderboardEntry } from "../hooks/usePoll";
+import type { PollResult, LeaderboardEntry } from "../api/pollService";
 import { Leaderboard } from "./Leaderboard";
 
 interface PollResultsProps {
@@ -12,18 +12,18 @@ interface PollResultsProps {
   markCorrectAnswer: (answer: string) => Promise<void>;
 }
 
-export const PollResults: React.FC<PollResultsProps> = ({ 
-  totalVotes, 
-  results, 
+export const PollResults: React.FC<PollResultsProps> = ({
+  totalVotes,
+  results,
   resetPoll,
   correctAnswerMarked,
   correctAnswer,
   leaderboard,
-  markCorrectAnswer 
+  markCorrectAnswer,
 }) => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
-  const styles = {
+  const styles: Record<string, any> = {
     wrapper: {
       display: "flex",
       alignItems: "center",
@@ -39,7 +39,8 @@ export const PollResults: React.FC<PollResultsProps> = ({
       maxWidth: 680,
       borderRadius: 20,
       overflow: "hidden",
-      background: "linear-gradient(160deg, #0d0d2b 0%, #0a0a22 60%, #080820 100%)",
+      background:
+        "linear-gradient(160deg, #0d0d2b 0%, #0a0a22 60%, #080820 100%)",
       border: "1px solid rgba(255,255,255,0.08)",
       boxShadow: "0 8px 48px rgba(0,0,0,0.6)",
       padding: "40px",
@@ -60,8 +61,12 @@ export const PollResults: React.FC<PollResultsProps> = ({
       marginBottom: "30px",
     },
     resultItem: (isCorrect: boolean) => ({
-      background: isCorrect ? "rgba(76, 175, 80, 0.1)" : "rgba(255,255,255,0.05)",
-      border: isCorrect ? "1px solid rgba(76, 175, 80, 0.4)" : "1px solid rgba(255,255,255,0.1)",
+      background: isCorrect
+        ? "rgba(76, 175, 80, 0.1)"
+        : "rgba(255,255,255,0.05)",
+      border: isCorrect
+        ? "1px solid rgba(76, 175, 80, 0.4)"
+        : "1px solid rgba(255,255,255,0.1)",
       borderRadius: "12px",
       padding: "16px 20px",
       marginBottom: "12px",
@@ -77,7 +82,9 @@ export const PollResults: React.FC<PollResultsProps> = ({
       left: 0,
       height: "100%",
       width: `${percentage}%`,
-      background: isCorrect ? "rgba(76, 175, 80, 0.2)" : "rgba(91, 142, 255, 0.2)",
+      background: isCorrect
+        ? "rgba(76, 175, 80, 0.2)"
+        : "rgba(91, 142, 255, 0.2)",
       zIndex: 0,
       transition: "width 1s ease-in-out",
     }),
@@ -135,29 +142,29 @@ export const PollResults: React.FC<PollResultsProps> = ({
     },
     button: {
       flex: 1,
-      background: '#3b6ef5',
-      color: 'white',
-      border: 'none',
+      background: "#3b6ef5",
+      color: "white",
+      border: "none",
       borderRadius: 14,
-      padding: '14px 20px',
+      padding: "14px 20px",
       fontSize: 16,
       fontWeight: 800,
-      cursor: 'pointer',
-      boxShadow: '0 4px 12px rgba(59, 110, 245, 0.4)',
-      transition: 'background 0.2s',
+      cursor: "pointer",
+      boxShadow: "0 4px 12px rgba(59, 110, 245, 0.4)",
+      transition: "background 0.2s",
     },
     secondaryButton: {
       flex: 1,
-      background: 'rgba(255,255,255,0.1)',
-      color: 'white',
-      border: '1px solid rgba(255,255,255,0.2)',
+      background: "rgba(255,255,255,0.1)",
+      color: "white",
+      border: "1px solid rgba(255,255,255,0.2)",
       borderRadius: 14,
-      padding: '14px 20px',
+      padding: "14px 20px",
       fontSize: 16,
       fontWeight: 800,
-      cursor: 'pointer',
-      transition: 'background 0.2s',
-    }
+      cursor: "pointer",
+      transition: "background 0.2s",
+    },
   };
 
   return (
@@ -165,23 +172,27 @@ export const PollResults: React.FC<PollResultsProps> = ({
       <div style={styles.card}>
         <div style={styles.title}>Poll Results</div>
         <div style={styles.subtitle}>Total Votes: {totalVotes}</div>
-        
+
         {results.map((result) => {
           const isCorrect = correctAnswer === result.option;
-          
+
           return (
             <div key={result.option} style={styles.resultItem(isCorrect)}>
               <div style={styles.resultBar(result.percentage, isCorrect)} />
               <div style={styles.resultContent}>
                 <div style={styles.optionInfo}>
                   <span style={styles.optionLabel}>Option {result.option}</span>
-                  {isCorrect && <span style={styles.correctBadge}>CORRECT</span>}
+                  {isCorrect && (
+                    <span style={styles.correctBadge}>CORRECT</span>
+                  )}
                 </div>
                 <div style={styles.actionArea}>
-                  <span style={styles.optionStats}>{result.votes} votes ({result.percentage}%)</span>
+                  <span style={styles.optionStats}>
+                    {result.votes} votes ({result.percentage}%)
+                  </span>
                   {!correctAnswerMarked && (
-                    <button 
-                      style={styles.markButton} 
+                    <button
+                      style={styles.markButton}
                       onClick={() => markCorrectAnswer(result.option)}
                     >
                       Mark Correct
@@ -192,20 +203,20 @@ export const PollResults: React.FC<PollResultsProps> = ({
             </div>
           );
         })}
-        
+
         <div style={styles.buttonContainer}>
-          <button style={styles.button} onClick={resetPoll}>Start New Poll</button>
-          <button 
-            style={styles.secondaryButton} 
+          <button style={styles.button} onClick={resetPoll}>
+            Start New Poll
+          </button>
+          <button
+            style={styles.secondaryButton}
             onClick={() => setShowLeaderboard(!showLeaderboard)}
           >
             {showLeaderboard ? "Hide Leaderboard" : "View Leaderboard"}
           </button>
         </div>
 
-        {showLeaderboard && (
-          <Leaderboard data={leaderboard} />
-        )}
+        {showLeaderboard && <Leaderboard data={leaderboard} />}
       </div>
     </div>
   );

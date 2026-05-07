@@ -3,10 +3,11 @@ import React from "react";
 interface ActivePollProps {
   question: string;
   timeLeft: number;
+  stopPoll: () => void;
 }
 
-export const ActivePoll: React.FC<ActivePollProps> = ({ question, timeLeft }) => {
-  const styles = {
+export const ActivePoll: React.FC<ActivePollProps> = ({ question, timeLeft, stopPoll }) => {
+  const styles: Record<string, React.CSSProperties> = {
     wrapper: {
       display: "flex",
       alignItems: "center",
@@ -25,7 +26,7 @@ export const ActivePoll: React.FC<ActivePollProps> = ({ question, timeLeft }) =>
       border: "1px solid rgba(255,255,255,0.08)",
       boxShadow: "0 8px 48px rgba(0,0,0,0.6)",
       padding: "50px 30px",
-      textAlign: "center" as const,
+      textAlign: "center",
     },
     title: {
       color: "white",
@@ -44,7 +45,20 @@ export const ActivePoll: React.FC<ActivePollProps> = ({ question, timeLeft }) =>
       color: "rgba(255,255,255,0.6)",
       fontSize: "18px",
       fontWeight: 500,
-    }
+    },
+    stopBtn: {
+      marginTop: "30px",
+      background: "#ff4d4d",
+      color: "white",
+      border: "none",
+      borderRadius: "12px",
+      padding: "12px 30px",
+      fontSize: "16px",
+      fontWeight: 700,
+      cursor: "pointer",
+      boxShadow: "0 4px 12px rgba(255, 77, 77, 0.3)",
+      transition: "background 0.2s",
+    },
   };
 
   return (
@@ -54,6 +68,9 @@ export const ActivePoll: React.FC<ActivePollProps> = ({ question, timeLeft }) =>
         <div style={styles.subtitle}>Polling is running...</div>
         <div style={styles.time}>{Math.ceil(timeLeft / 1000)}s</div>
         <div style={styles.subtitle}>Waiting for responses</div>
+        <button style={styles.stopBtn} onClick={stopPoll}>
+          Stop Poll
+        </button>
       </div>
     </div>
   );

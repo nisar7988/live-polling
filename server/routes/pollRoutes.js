@@ -1,12 +1,25 @@
 const express = require("express");
-const { startPoll, getPollStatus, getPollResult, markCorrectAnswer, getLeaderboard } = require("../controllers/pollController");
+const { startPoll, getPollStatus, getPollResult, markCorrectAnswer, getLeaderboard, stopPoll, resetPoll, getAuthUrl, handleAuthCallback, getAuthStatus, logout } = require("../controllers/pollController");
 
 const router = express.Router();
 
+// Auth routes
+router.get("/auth/url", getAuthUrl);
+router.get("/auth/callback", handleAuthCallback); // Changed to GET for browser redirect
+router.get("/auth/status", getAuthStatus);
+router.post("/auth/logout", logout);
+
+// Session routes
+router.get("/session-summary", getSessionSummary);
+router.post("/reset-session", resetSession);
+
+// Poll routes
 router.post("/start-poll", startPoll);
 router.get("/poll-status", getPollStatus);
 router.get("/poll-result", getPollResult);
 router.post("/mark-correct", markCorrectAnswer);
 router.get("/leaderboard", getLeaderboard);
+router.post("/stop-poll", stopPoll);
+router.post("/reset-poll", resetPoll);
 
 module.exports = router;

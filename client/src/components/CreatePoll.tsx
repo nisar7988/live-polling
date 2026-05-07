@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
 const POLL_TYPES = [
   { id: "single", label: "Single\nChoice" },
@@ -33,7 +33,7 @@ function Avatar({ color }) {
   );
 }
 
-export default function CreatePoll({ startPoll, error, viewerCount }: any) {
+export default function CreatePoll({ startPoll, error, viewerCount, resetPoll, user, logout }: any) {
   const [pollType, setPollType] = useState("single");
   const [timeOption, setTimeOption] = useState("30");
 
@@ -43,7 +43,7 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
     startPoll(["A", "B", "C", "D"], duration);
   };
 
-  const styles = {
+  const styles: Record<string, any> = {
     wrapper: {
       display: "flex",
       alignItems: "center",
@@ -51,6 +51,7 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
       minHeight: "100vh",
       background: "#080820",
       fontFamily: "'Nunito', 'Segoe UI', sans-serif",
+      padding: 20,
     },
     card: {
       position: "relative",
@@ -69,11 +70,54 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
       padding: "16px 16px 20px",
     },
 
-    // Header
-    header: {
+    // User Profile Header
+    userHeader: {
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
+      paddingBottom: 16,
+      marginBottom: 16,
+      borderBottom: "1px solid rgba(255,255,255,0.05)",
+    },
+    userInfo: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+    },
+    userAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: "50%",
+      border: "2px solid #3b6ef5",
+    },
+    userName: {
+      color: "white",
+      fontWeight: 700,
+      fontSize: 14,
+    },
+    userRole: {
+      color: "#3b6ef5",
+      fontSize: 12,
+      fontWeight: 600,
+      display: "block",
+    },
+    logoutBtn: {
+      background: "rgba(255,255,255,0.05)",
+      color: "rgba(255,255,255,0.6)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: 10,
+      padding: "6px 12px",
+      fontSize: 12,
+      fontWeight: 600,
+      cursor: "pointer",
+      transition: "all 0.2s",
+    },
+
+    // Header
+    header: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginBottom: 14,
     },
     restartBtn: {
@@ -93,35 +137,6 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
       fontWeight: 700,
       letterSpacing: 0.3,
       margin: 0,
-    },
-    headerIcons: {
-      display: "flex",
-      gap: 8,
-      alignItems: "center",
-    },
-    iconBtn: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      border: "2px solid rgba(255,255,255,0.3)",
-      background: "rgba(255,255,255,0.08)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-    },
-    trophyIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      border: "2px solid rgba(255,255,255,0.3)",
-      background: "rgba(255,255,255,0.08)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-      flexDirection: "column",
-      gap: 0,
     },
 
     // Poll type tabs
@@ -223,21 +238,6 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
       fontSize: 15,
       fontWeight: 600,
     },
-    sparkle: {
-      color: "rgba(255,255,255,0.6)",
-      fontSize: 20,
-      marginLeft: 6,
-    },
-
-    moveIcon: {
-      width: 30,
-      height: 30,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "grab",
-    },
   };
 
   const normalOptions = TIME_OPTIONS.filter((t) => t.id !== "timeless");
@@ -252,13 +252,39 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
       <div style={styles.wrapper}>
         <div style={styles.card}>
           <div style={styles.inner}>
+            {/* User Profile Header */}
+            {user && (
+              <div style={styles.userHeader}>
+                <div style={styles.userInfo}>
+                  <img src={user.thumbnails?.default?.url} alt={user.title} style={styles.userAvatar} />
+                  <div>
+                    <span style={styles.userName}>{user.title}</span>
+                    <span style={styles.userRole}>YouTube Channel</span>
+                  </div>
+                </div>
+                <button 
+                  style={styles.logoutBtn} 
+                  onClick={logout}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = 'rgba(255,0,0,0.1)';
+                    e.currentTarget.style.color = '#ef4444';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+
             {/* Header */}
             <div style={styles.header}>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: 12 }}
-              ></div>
-
               <p style={styles.title}>Select Poll Type</p>
+              <button style={styles.restartBtn} onClick={resetPoll}>
+                Reset All
+              </button>
             </div>
 
             {/* Poll Type Tabs */}
@@ -328,7 +354,7 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
               }}
             >
               {error && (
-                <div style={{ color: "#ff6b6b", fontSize: 14 }}>{error}</div>
+                <div style={{ color: "#ef4444", fontSize: 14, fontWeight: 600 }}>{error}</div>
               )}
               <button
                 onClick={handleStart}
@@ -343,7 +369,10 @@ export default function CreatePoll({ startPoll, error, viewerCount }: any) {
                   cursor: "pointer",
                   width: "100%",
                   boxShadow: "0 4px 12px rgba(59, 110, 245, 0.4)",
+                  transition: "all 0.2s",
                 }}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
               >
                 Start Poll
               </button>
