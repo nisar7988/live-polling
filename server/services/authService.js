@@ -7,7 +7,7 @@ const TOKEN_PATH = path.join(__dirname, "../tokens.json");
 const oauth2Client = new google.auth.OAuth2(
   process.env.YOUTUBE_CLIENT_ID,
   process.env.YOUTUBE_CLIENT_SECRET,
-  "https://live-polling-gray.vercel.app/auth/callback", // Default redirect URI
+  process.env.REDIRECT_URI || "http://localhost:3001/auth/callback",
 );
 
 // Load tokens from file if it exists
