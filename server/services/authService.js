@@ -7,7 +7,7 @@ const TOKEN_PATH = path.join(__dirname, "../tokens.json");
 const oauth2Client = new google.auth.OAuth2(
   process.env.YOUTUBE_CLIENT_ID,
   process.env.YOUTUBE_CLIENT_SECRET,
-  "http://localhost:3001/auth/callback", // Default redirect URI
+  "https://live-polling-gray.vercel.app/auth/callback", // Default redirect URI
 );
 
 // Load tokens from file if it exists
@@ -24,10 +24,10 @@ if (fs.existsSync(TOKEN_PATH)) {
 // Save tokens on change
 oauth2Client.on("tokens", (tokens) => {
   try {
-    const currentTokens = fs.existsSync(TOKEN_PATH) 
-      ? JSON.parse(fs.readFileSync(TOKEN_PATH)) 
+    const currentTokens = fs.existsSync(TOKEN_PATH)
+      ? JSON.parse(fs.readFileSync(TOKEN_PATH))
       : {};
-    
+
     const updatedTokens = { ...currentTokens, ...tokens };
     fs.writeFileSync(TOKEN_PATH, JSON.stringify(updatedTokens, null, 2));
     console.log("Tokens updated and persisted.");
@@ -52,10 +52,10 @@ async function getAuthUrl() {
 async function handleCallback(code) {
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);
-  
+
   // Save tokens explicitly the first time
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens, null, 2));
-  
+
   return tokens;
 }
 
