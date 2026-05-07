@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.1.202:3001";
+const BASE_URL = "https://live-polling-uke7.onrender.com";
 
 interface RequestOptions extends RequestInit {
   body?: any;
