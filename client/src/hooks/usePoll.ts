@@ -18,6 +18,8 @@ export const usePoll = () => {
   const [correctAnswer, setCorrectAnswer] = useState<string | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [pollHistory, setPollHistory] = useState<PastPoll[]>([]);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [quiz, setQuiz] = useState<import("../api/pollService").QuizState | null>(null);
 
   const fetchSessionSummary = useCallback(async () => {
     try {
@@ -40,6 +42,7 @@ export const usePoll = () => {
       setTotalVotes(0);
       setCorrectAnswerMarked(false);
       setCorrectAnswer(null);
+      setExplanation(null);
     } catch (err: any) {
       console.error("Error starting poll:", err);
       setError(err.message || "An unexpected error occurred");
@@ -56,6 +59,7 @@ export const usePoll = () => {
       setError(null);
       setCorrectAnswerMarked(false);
       setCorrectAnswer(null);
+      setExplanation(null);
     } catch (err: any) {
       console.error("Error resetting poll:", err);
       setError(err.message || "Failed to reset poll");
@@ -94,6 +98,7 @@ export const usePoll = () => {
       }
       setCorrectAnswerMarked(data.correctAnswerMarked || false);
       setCorrectAnswer(data.correctAnswer || null);
+      if (data.question) setQuestion(data.question);
 
       if (data.error) {
         setError(data.error);
@@ -113,6 +118,7 @@ export const usePoll = () => {
       setTotalVotes(data.totalVotes);
       setCorrectAnswerMarked(data.correctAnswerMarked || false);
       setCorrectAnswer(data.correctAnswer || null);
+      setQuestion(data.question || "");
       setActive(false);
     } catch (error) {
       console.error("Error fetching results:", error);
@@ -121,14 +127,55 @@ export const usePoll = () => {
 
   const markCorrectAnswer = async (answer: string) => {
     try {
-      await pollService.markCorrectAnswer(answer);
+      const data = await pollService.markCorrectAnswer(answer);
       setCorrectAnswerMarked(true);
-      setCorrectAnswer(answer);
+      setCorrectAnswer(data.correctAnswer);
+      setExplanation(data.explanation);
       // Refresh session data after marking correct answer
       await fetchSessionSummary();
     } catch (error: any) {
       console.error("Error marking correct answer:", error);
       setError(error.message || "Failed to mark answer");
+    }
+  };
+
+  const generateQuiz = async (topic: string, difficulty: string, questionCount: number) => {
+    setError(null);
+    try {
+      const data = await pollService.generateQuiz(topic, difficulty, questionCount);
+      setQuiz(data.quiz);
+      return data.quiz;
+    } catch (err: any) {
+      setError(err.message || "Failed to generate quiz");
+      throw err;
+    }
+  };
+
+  const startNextQuestion = async (duration: number) => {
+    setError(null);
+    try {
+      const data = await pollService.nextQuestion(duration);
+      setQuestion(data.question.question);
+      setActive(true);
+      setTimeLeft(duration);
+      setResults([]);
+      setTotalVotes(0);
+      setCorrectAnswerMarked(false);
+      setCorrectAnswer(null);
+      setExplanation(null);
+      setQuiz((current) => current ? { ...current, currentIndex: data.currentIndex } : current);
+    } catch (err: any) {
+      setError(err.message || "Failed to start quiz question");
+      throw err;
+    }
+  };
+
+  const generateSessionSummary = async () => {
+    try {
+      return await pollService.getAiSessionSummary();
+    } catch (err: any) {
+      setError(err.message || "Failed to generate session summary");
+      throw err;
     }
   };
 
@@ -170,11 +217,16 @@ export const usePoll = () => {
     correctAnswer,
     leaderboard,
     pollHistory,
+    explanation,
+    quiz,
     startPoll,
     resetPoll,
     resetSession,
     stopPoll,
     markCorrectAnswer,
+    generateQuiz,
+    startNextQuestion,
+    generateSessionSummary,
     fetchSessionSummary,
   };
 };

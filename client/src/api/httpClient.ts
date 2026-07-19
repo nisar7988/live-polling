@@ -1,4 +1,4 @@
-const BASE_URL = "https://live-polling-uke7.onrender.com";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
 
 interface RequestOptions extends RequestInit {
   body?: any;

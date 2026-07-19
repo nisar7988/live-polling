@@ -1,33 +1,35 @@
 import { useState } from "react";
 import { usePoll } from "./hooks/usePoll";
 import { useAuth } from "./hooks/useAuth";
-import CreatePoll from "./components/CreatePoll";
 import { ActivePoll } from "./components/ActivePoll";
 import { PollResults } from "./components/PollResults";
 import { SessionOverview } from "./components/SessionOverview";
+import { AiQuizGenerator } from "./components/AiQuizGenerator";
 
 function App() {
   const {
     question,
-    setQuestion,
     active,
     timeLeft,
     results,
     totalVotes,
     error: pollError,
-    viewerCount,
     correctAnswerMarked,
     correctAnswer,
     leaderboard,
     pollHistory,
-    startPoll,
     resetPoll,
     resetSession,
     stopPoll,
     markCorrectAnswer,
+    explanation,
+    quiz,
+    generateQuiz,
+    startNextQuestion,
+    generateSessionSummary,
   } = usePoll();
 
-  const { isAuthenticated, user, loading, login, logout } = useAuth();
+  const { isAuthenticated, loading, login } = useAuth();
   const [showSessionOverview, setShowSessionOverview] = useState(false);
 
   const styles: Record<string, any> = {
@@ -186,6 +188,7 @@ function App() {
         leaderboard={leaderboard} 
         history={pollHistory}
         onBack={() => setShowSessionOverview(false)}
+        onGenerateSummary={generateSessionSummary}
         onReset={async () => {
           await resetSession();
           setShowSessionOverview(false);
@@ -209,16 +212,7 @@ function App() {
       )}
 
       {!active && results.length === 0 && (
-        <CreatePoll
-          question={question}
-          setQuestion={setQuestion}
-          startPoll={startPoll}
-          error={pollError}
-          viewerCount={viewerCount}
-          resetPoll={resetPoll}
-          user={user}
-          logout={logout}
-        />
+        <AiQuizGenerator error={pollError} quiz={quiz} generateQuiz={generateQuiz} startNextQuestion={startNextQuestion} />
       )}
 
       {active && (
@@ -238,6 +232,8 @@ function App() {
           correctAnswer={correctAnswer}
           leaderboard={leaderboard}
           markCorrectAnswer={markCorrectAnswer}
+          explanation={explanation}
+          onNextQuestion={quiz && quiz.questions[quiz.currentIndex + 1] ? () => startNextQuestion(30000) : undefined}
         />
       )}
     </div>

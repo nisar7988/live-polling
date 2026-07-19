@@ -7,6 +7,11 @@ export interface PollStatusResponse {
   viewerCount: number;
   correctAnswerMarked: boolean;
   correctAnswer: string | null;
+  question: string;
+  options: string[];
+  quizQuestion: QuizQuestion | null;
+  totalVotes: number;
+  liveResults: PollResult[];
 }
 
 export interface PollResult {
@@ -20,6 +25,8 @@ export interface PollResultsResponse {
   totalVotes: number;
   correctAnswerMarked: boolean;
   correctAnswer: string | null;
+  question: string;
+  quizQuestion: QuizQuestion | null;
 }
 
 export interface LeaderboardEntry {
@@ -34,6 +41,22 @@ export interface PastPoll {
   votes: Record<string, number>;
   correctAnswer: string | null;
   timestamp: number;
+  explanation?: string | null;
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: Record<string, string>;
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface QuizState {
+  questions: QuizQuestion[];
+  currentIndex: number;
+  topic: string | null;
+  difficulty: string | null;
+  sessionSummary: string | null;
 }
 
 export interface SessionSummaryResponse {
@@ -53,7 +76,16 @@ export const pollService = {
   getPollResults: () => api.get<PollResultsResponse>('/poll-result'),
 
   markCorrectAnswer: (correctAnswer: string) =>
-    api.post<{ message: string }>('/mark-correct', { correctAnswer }),
+    api.post<{ message: string; correctAnswer: string; explanation: string | null }>('/mark-correct', { correctAnswer }),
+
+  generateQuiz: (topic: string, difficulty: string, questionCount: number) =>
+    api.post<{ quiz: QuizState }>('/ai/generate-quiz', { topic, difficulty, questionCount }),
+
+  nextQuestion: (duration: number) =>
+    api.post<{ message: string; question: QuizQuestion; currentIndex: number; remainingQuestions: number }>('/ai/next-question', { duration }),
+
+  getAiSessionSummary: () =>
+    api.post<{ metrics: Record<string, unknown>; summary: string }>('/ai/session-summary'),
 
   getSessionSummary: () => api.get<SessionSummaryResponse>('/session-summary'),
 

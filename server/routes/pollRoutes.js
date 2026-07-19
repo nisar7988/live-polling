@@ -1,5 +1,5 @@
 const express = require("express");
-const { startPoll, getPollStatus, getPollResult, markCorrectAnswer, stopPoll, resetPoll, getAuthUrl, handleAuthCallback, getAuthStatus, logout, getSessionSummary, resetSession } = require("../controllers/pollController");
+const { startPoll, getPollStatus, getPollResult, markCorrectAnswer, stopPoll, resetPoll, getAuthUrl, handleAuthCallback, getAuthStatus, logout, getSessionSummary, resetSession, generateAiQuiz, nextAiQuestion, getAiSessionSummary } = require("../controllers/pollController");
 
 const router = express.Router();
 
@@ -12,6 +12,9 @@ router.post("/auth/logout", logout);
 // Session routes
 router.get("/session-summary", getSessionSummary);
 router.post("/reset-session", resetSession);
+router.post("/ai/generate-quiz", generateAiQuiz);
+router.post("/ai/next-question", nextAiQuestion);
+router.post("/ai/session-summary", getAiSessionSummary);
 
 // Poll routes
 router.post("/start-poll", startPoll);

@@ -10,6 +10,8 @@ interface PollResultsProps {
   correctAnswer: string | null;
   leaderboard: LeaderboardEntry[];
   markCorrectAnswer: (answer: string) => Promise<void>;
+  explanation: string | null;
+  onNextQuestion?: () => Promise<void>;
 }
 
 export const PollResults: React.FC<PollResultsProps> = ({
@@ -20,6 +22,8 @@ export const PollResults: React.FC<PollResultsProps> = ({
   correctAnswer,
   leaderboard,
   markCorrectAnswer,
+  explanation,
+  onNextQuestion,
 }) => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
@@ -204,6 +208,8 @@ export const PollResults: React.FC<PollResultsProps> = ({
           );
         })}
 
+        {explanation && <div style={{ marginTop: 20, padding: 16, borderRadius: 12, background: "rgba(16,185,129,.12)", color: "#d1fae5", lineHeight: 1.5 }}><strong>Why this answer is correct</strong><br />{explanation}</div>}
+
         <div style={styles.buttonContainer}>
           <button style={styles.button} onClick={resetPoll}>
             Start New Poll
@@ -214,6 +220,7 @@ export const PollResults: React.FC<PollResultsProps> = ({
           >
             {showLeaderboard ? "Hide Leaderboard" : "View Leaderboard"}
           </button>
+          {onNextQuestion && correctAnswerMarked && <button style={styles.button} onClick={onNextQuestion}>Next Question</button>}
         </div>
 
         {showLeaderboard && <Leaderboard data={leaderboard} />}
