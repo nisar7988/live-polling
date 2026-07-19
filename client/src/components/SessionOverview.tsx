@@ -8,6 +8,7 @@ interface SessionOverviewProps {
   history: PastPoll[];
   onBack: () => void;
   onReset: () => void;
+  onGenerateSummary: () => Promise<{ metrics: Record<string, unknown>; summary: string }>;
 }
 
 export const SessionOverview: React.FC<SessionOverviewProps> = ({
@@ -15,7 +16,19 @@ export const SessionOverview: React.FC<SessionOverviewProps> = ({
   history,
   onBack,
   onReset,
+  onGenerateSummary,
 }) => {
+  const [summary, setSummary] = React.useState<string | null>(null);
+  const [loadingSummary, setLoadingSummary] = React.useState(false);
+  const handleGenerateSummary = async () => {
+    setLoadingSummary(true);
+    try {
+      const data = await onGenerateSummary();
+      setSummary(data.summary);
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
   const styles: Record<string, React.CSSProperties> = {
     wrapper: {
       padding: "40px 20px",
@@ -125,10 +138,14 @@ export const SessionOverview: React.FC<SessionOverviewProps> = ({
             >
               End Session
             </button>
+            <button style={{ ...styles.btn, background: "#3b6ef5", color: "white" }} onClick={handleGenerateSummary} disabled={loadingSummary || history.length === 0}>
+              {loadingSummary ? "Generating…" : "AI Summary"}
+            </button>
           </div>
         </div>
 
         <Leaderboard data={leaderboard} />
+        {summary && <section style={{ marginTop: 24, padding: 20, borderRadius: 16, background: "rgba(59,110,245,.14)", lineHeight: 1.6 }}><strong>AI Session Feedback</strong><p style={{ marginBottom: 0 }}>{summary}</p></section>}
 
         <h2 style={styles.sectionTitle}>Poll History ({history.length})</h2>
         <div style={styles.historyList}>

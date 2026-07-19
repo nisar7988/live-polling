@@ -6,6 +6,7 @@ interface LeaderboardProps {
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ data }) => {
+  const trophies = ["🥇", "🥈", "🥉"];
   const styles = {
     wrapper: {
       marginTop: "30px",
@@ -89,9 +90,10 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ data }) => {
         <div style={styles.emptyState}>No data available yet</div>
       ) : (
         data.map((entry, index) => (
-          <div key={index} style={styles.row}>
+          <div key={`${entry.userName}-${index}`} style={{ ...styles.row, transition: "transform .25s ease, background .25s ease" }}>
             <div style={styles.userInfo}>
-              <div style={styles.rankBadge(index + 1)}>{index + 1}</div>
+              <div style={styles.rankBadge(index + 1)}>{index < 3 ? trophies[index] : index + 1}</div>
+              <div style={{ width: 30, height: 30, borderRadius: "50%", display: "grid", placeItems: "center", marginRight: 10, background: "linear-gradient(135deg, #5b8eff, #a855f7)", color: "white", fontWeight: 800 }}>{entry.userName.slice(0, 1).toUpperCase()}</div>
               <span style={styles.userName}>{entry.userName}</span>
             </div>
             <div style={styles.scoreInfo}>

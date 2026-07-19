@@ -1,0 +1,104 @@
+{
+  "leaderboard": {},
+  "pollHistory": [],
+  "quiz": {
+    "questions": [
+      {
+        "question": "Which hook in React Native is used to perform side effects, such as data fetching or subscriptions, in function components?",
+        "options": {
+          "A": "useMemo",
+          "B": "useEffect",
+          "C": "useCallback",
+          "D": "useRef"
+        },
+        "correctAnswer": "B",
+        "explanation": "The useEffect hook allows you to perform side effects in function components, serving a similar purpose to lifecycle methods like componentDidMount and componentDidUpdate."
+      },
+      {
+        "question": "What is the primary purpose of the 'StyleSheet.create' method in React Native?",
+        "options": {
+          "A": "To convert CSS strings into JavaScript objects",
+          "B": "To apply platform-specific styles automatically",
+          "C": "To provide optimization by sending style objects through the bridge only once",
+          "D": "To allow for dynamic media queries within the application"
+        },
+        "correctAnswer": "C",
+        "explanation": "StyleSheet.create creates a style reference, which allows the optimization of style objects by sending them through the React Native bridge once rather than every render."
+      },
+      {
+        "question": "In React Native, which component is most efficient for rendering large lists of data with lazy loading?",
+        "options": {
+          "A": "ScrollView",
+          "B": "View",
+          "C": "FlatList",
+          "D": "WebView"
+        },
+        "correctAnswer": "C",
+        "explanation": "FlatList is designed for large lists, as it performs windowing (only rendering items currently visible on the screen) to maintain performance."
+      },
+      {
+        "question": "What is the correct way to handle platform-specific code in React Native?",
+        "options": {
+          "A": "Using Platform.OS and Platform.select",
+          "B": "Using conditional if-else based on window size",
+          "C": "Importing CSS files specifically named .ios.css or .android.css",
+          "D": "By setting the operating system version in the package.json file"
+        },
+        "correctAnswer": "A",
+        "explanation": "The Platform module provides the OS constant and the Platform.select helper, which allows you to define different values or components depending on whether the app is running on iOS or Android."
+      },
+      {
+        "question": "What happens if you use the 'flex: 1' style property on a component in React Native?",
+        "options": {
+          "A": "It sets the width of the component to 100%",
+          "B": "It sets the flexGrow, flexShrink, and flexBasis to 1",
+          "C": "It removes all padding and margins from the component",
+          "D": "It forces the component to be centered within its parent"
+        },
+        "correctAnswer": "B",
+        "explanation": "In React Native, flex: 1 is a shorthand for flexGrow: 1, flexShrink: 1, and flexBasis: 0, which makes the component fill the available space in the parent container."
+      }
+    ],
+    "currentIndex": 0,
+    "topic": "React Native",
+    "difficulty": "Medium",
+    "sessionSummary": null
+  },
+  "lastPoll": {
+    "question": "Which hook in React Native is used to perform side effects, such as data fetching or subscriptions, in function components?",
+    "pollType": "Single Choice",
+    "duration": 30000,
+    "options": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "votes": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+    },
+    "voters": {},
+    "startTime": 1784448025352,
+    "endTime": 1784448055352,
+    "active": true,
+    "nextPageToken": null,
+    "liveChatId": "KicKGFVDVUJPNmxPUTFLOTlldjBreERRUDliURILdlNONFh1bmx3NGc",
+    "error": null,
+    "correctAnswerMarked": false,
+    "correctAnswer": null,
+    "quizQuestion": {
+      "question": "Which hook in React Native is used to perform side effects, such as data fetching or subscriptions, in function components?",
+      "options": {
+        "A": "useMemo",
+        "B": "useEffect",
+        "C": "useCallback",
+        "D": "useRef"
+      },
+      "correctAnswer": "B",
+      "explanation": "The useEffect hook allows you to perform side effects in function components, serving a similar purpose to lifecycle methods like componentDidMount and componentDidUpdate."
+    }
+  }
+}
