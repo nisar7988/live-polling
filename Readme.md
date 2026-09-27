@@ -2,6 +2,9 @@
 
 An AI-powered YouTube Live quiz platform for streamers, educators, and creators. Hosts generate a quiz from a topic, run each question as an A–D YouTube Live Chat poll, reveal explanations, and review session feedback.
 
+![Screenshot 1](./screenshots/1.png)
+![Screenshot 2](./screenshots/2.png)
+![Screenshot 3](./screenshots/3.png)
 The project is structured as a monorepo consisting of:
 *   **`client/`**: A React + Vite + TypeScript frontend application styled with modern aesthetics. It can be run in the browser or wrapped as a native desktop application using Electron.
 *   **`server/`**: A Node.js + Express backend that coordinates authentication, polls YouTube chat messages, processes votes, keeps track of leaderboard scores, and handles persistent storage.
